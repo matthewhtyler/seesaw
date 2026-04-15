@@ -297,7 +297,7 @@
 
     .movie-card .remove-btn {
       left: 0.5rem;
-      background: rgba(220, 38, 38, 0.9);
+      background: rgba(0, 0, 0, 0.9);
     }
 
     .movie-card .check-btn {
@@ -306,7 +306,7 @@
     }
 
     .remove-btn:hover {
-      background: rgba(220, 38, 38, 1);
+      background: rgba(0, 0, 0, 1);
     }
 
     .check-btn:hover {
@@ -587,7 +587,11 @@
       const currentList = currentView === 'see' ? watchlist : sawList;
       
       if (currentList.length === 0) {
-        container.innerHTML = `<div class="empty-state"><p style="font-size: 1.2rem; margin-bottom: 0.5rem;">Your ${currentView} list is empty</p><p style="font-size: 1rem;">${currentView === 'see' ? 'Search for films above to get started' : 'Mark films as watched to see them here'}</p></div>`;
+        if (currentView === 'see') {
+          container.innerHTML = `<div class="empty-state"><p style="font-size: 1.2rem; margin-bottom: 0.5rem;">Your watchlist is empty</p><p style="font-size: 1rem;">Search for films above to get started</p></div>`;
+        } else {
+          container.innerHTML = '';
+        }
         return;
       }
 
