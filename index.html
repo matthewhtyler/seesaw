@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>seesaw</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #2a2a2a;
+      color: #e5e5e5;
+      min-height: 100vh;
+      padding: 1rem 2rem 2rem 2rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding-bottom: 6rem;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      padding-top: 0.5rem;
+    }
+
+    .title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      cursor: default;
+      user-select: none;
+    }
+
+    .title-see {
+      color: #e5e5e5;
+      cursor: pointer;
+      transition: opacity 0.3s;
+      text-shadow: 0 0 20px rgba(229, 229, 229, 0.4);
+    }
+
+    .title-see.dim {
+      opacity: 0.3;
+      text-shadow: none;
+    }
+
+    .title-saw {
+      color: #e5e5e5;
+      cursor: pointer;
+      transition: opacity 0.3s;
+      opacity: 0.3;
+    }
+
+    .title-saw.dim {
+      opacity: 0.3;
+      text-shadow: none;
+    }
+
+    .title-saw.active {
+      opacity: 1;
+      text-shadow: 0 0 20px rgba(229, 229, 229, 0.4);
+    }
+
+    .search-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 1rem;
+      background: #2a2a2a;
+      border-top: 2px solid #333;
+      z-index: 30;
+    }
+
+    .search-wrapper {
+      max-width: 1400px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      background: #1a1a1a;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      border: 2px solid #333;
+    }
+
+    .search-icon {
+      color: #999;
+      margin-right: 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #e5e5e5;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+
+    .menu {
+      position: absolute;
+      bottom: 4rem;
+      left: 0;
+      background: #1a1a1a;
+      border-radius: 8px;
+      border: 2px solid #333;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 20;
+      min-width: 180px;
+      display: none;
+    }
+
+    .menu.show {
+      display: block;
+    }
+
+    .menu::before {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 12px;
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 8px solid #333;
+    }
+
+    .menu::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 13px;
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 7px solid #1a1a1a;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      border-bottom: 1px solid #333;
+    }
+
+    .menu-item:last-child {
+      border-bottom: none;
+      border-radius: 6px;
+    }
+
+    .menu-item:first-child {
+      border-radius: 6px;
+    }
+
+    .menu-item:hover {
+      background: #333;
+    }
+
+    .menu-item svg {
+      color: #999;
+      margin-right: 0.75rem;
+    }
+
+    .search-results {
+      position: absolute;
+      bottom: 4rem;
+      left: 0;
+      right: 0;
+      background: #1a1a1a;
+      border-radius: 12px;
+      border: 2px solid #333;
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 10;
+      display: none;
+    }
+
+    .search-results.show {
+      display: block;
+    }
+
+    .search-result {
+      display: flex;
+      padding: 1rem;
+      cursor: pointer;
+      border-bottom: 1px solid #333;
+    }
+
+    .search-result:hover {
+      background: #333;
+    }
+
+    .search-result img {
+      width: 60px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-right: 1rem;
+    }
+
+    .search-result-info {
+      flex: 1;
+    }
+
+    .search-result-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .search-result-director {
+      font-size: 0.9rem;
+      color: #999;
+      margin-bottom: 0.25rem;
+    }
+
+    .search-result-cast {
+      font-size: 0.85rem;
+      color: #999;
+    }
+
+    .watchlist-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      .watchlist-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 2rem;
+      }
+    }
+
+    .movie-card {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #1a1a1a;
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+
+    /* Desktop: lift on hover */
+    @media (hover: hover) {
+      .movie-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6);
+      }
+    }
+
+    /* Mobile: lift when touched */
+    @media (hover: none) {
+      .movie-card.touched {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6);
+      }
+    }
+
+    .movie-card img {
+      width: 100%;
+      aspect-ratio: 2/3;
+      object-fit: cover;
+    }
+
+    .movie-card .remove-btn,
+    .movie-card .check-btn {
+      position: absolute;
+      top: 0.5rem;
+      background: rgba(0, 0, 0, 0.8);
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2;
+      color: #fff;
+      display: none;
+    }
+
+    .movie-card .remove-btn {
+      left: 0.5rem;
+    }
+
+    .movie-card .check-btn {
+      right: 0.5rem;
+    }
+
+    .remove-btn:hover,
+    .check-btn:hover {
+      background: rgba(90, 154, 154, 0.9);
+    }
+
+    /* Desktop: show on hover */
+    @media (hover: hover) {
+      .movie-card:hover .check-btn,
+      .movie-card:hover .remove-btn {
+        display: flex;
+      }
+    }
+
+    /* Mobile: show only when touched class is present */
+    @media (hover: none) {
+      .movie-card.touched .check-btn,
+      .movie-card.touched .remove-btn {
+        display: flex;
+      }
+    }
+
+    .movie-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 1rem;
+      background: linear-gradient(to top, rgba(26, 26, 26, 0.95), transparent);
+    }
+
+    .movie-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #fff;
+    }
+
+    .movie-director {
+      font-size: 0.85rem;
+      color: #999;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 100;
+      display: none;
+    }
+
+    .modal-backdrop.show {
+      display: block;
+    }
+
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #1a1a1a;
+      border-radius: 16px;
+      border: 2px solid #333;
+      padding: 2rem;
+      z-index: 101;
+      min-width: 400px;
+      max-width: 90%;
+      display: none;
+    }
+
+    .modal.show {
+      display: block;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0.5rem;
+      color: #999;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      display: block;
+      color: #999;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+      width: 100%;
+      background: #2a2a2a;
+      border: 2px solid #333;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: #e5e5e5;
+      font-size: 0.95rem;
+      font-family: monospace;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: #5a9a9a;
+    }
+
+    .save-btn {
+      width: 100%;
+      background: #5a9a9a;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .save-btn:hover {
+      background: #4a8a8a;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #666;
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1 class="title">
+        <span class="title-see" id="titleSee" onclick="showSeeList()">see</span><span class="title-saw" id="titleSaw" onclick="showSawList()">saw</span>
+      </h1>
+    </div>
+
+    <!-- Watchlist Grid -->
+    <div class="watchlist-grid" id="watchlist"></div>
+  </div>
+
+  <!-- Search Bar (Fixed at Bottom) -->
+  <div class="search-container">
+    <div class="search-wrapper">
+      <div class="search-bar">
+        <div class="search-icon" onclick="toggleMenu()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+        </div>
+        <input 
+          type="text" 
+          class="search-input" 
+          placeholder="Search…"
+          oninput="handleSearch(this.value)"
+          onfocus="hideMenu()"
+        >
+      </div>
+
+      <!-- Menu -->
+      <div class="menu" id="menu">
+        <div class="menu-item" onclick="openSettings()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span>Settings</span>
+        </div>
+      </div>
+
+      <!-- Search Results -->
+      <div class="search-results" id="searchResults"></div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-backdrop" id="modalBackdrop" onclick="closeSettings()"></div>
+  <div class="modal" id="settingsModal">
+    <div class="modal-header">
+      <h2 class="modal-title">Settings</h2>
+      <button class="close-btn" onclick="closeSettings()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">TMDB API Key</label>
+      <input type="text" class="form-input" id="apiKeyInput" placeholder="Enter your API key...">
+    </div>
+    <button class="save-btn" onclick="saveSettings()">Save</button>
+  </div>
+
+  <script>
+    let watchlist = [
+      {
+        id: 1,
+        title: "The Grand Budapest Hotel",
+        poster: "https://m.media-amazon.com/images/M/MV5BMzM5NjUxOTEyMl5BMl5BanBnXkFtZTgwNjEyMDM0MDE@._V1_SX300.jpg",
+        director: "Wes Anderson",
+        screenwriter: "Wes Anderson",
+        cast: ["Ralph Fiennes", "F. Murray Abraham", "Mathieu Amalric", "Adrien Brody", "Willem Dafoe"]
+      },
+      {
+        id: 2,
+        title: "Close-Up",
+        poster: "https://m.media-amazon.com/images/M/MV5BZDNhOTNiYWUtM2E0Ny00NTUyLWJlNWUtNTZiMTI0ZDEzMjE0XkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_SX300.jpg",
+        director: "Abbas Kiarostami",
+        screenwriter: "Abbas Kiarostami",
+        cast: ["Hossain Sabzian", "Mohsen Makhmalbaf", "Abolfazl Ahankhah", "Mehrdad Ahankhah", "Monoochehr Ahankhah"]
+      },
+      {
+        id: 3,
+        title: "Do the Right Thing",
+        poster: "https://m.media-amazon.com/images/M/MV5BOTJmNmU4MmYtZGY1YS00YzgzLTk4MDgtODRjODgxMGRkN2ViXkEyXkFqcGdeQXVyNjQ2MjQ5NzM@._V1_SX300.jpg",
+        director: "Spike Lee",
+        screenwriter: "Spike Lee",
+        cast: ["Danny Aiello", "Ossie Davis", "Ruby Dee", "Richard Edson", "Giancarlo Esposito"]
+      }
+    ];
+
+    let sawList = JSON.parse(localStorage.getItem('saw_list') || '[]');
+    let currentView = 'see';
+    let apiKey = localStorage.getItem('tmdb_api_key') || '';
+    let searchTimeout;
+
+    // Load saved API key
+    if (apiKey) {
+      document.getElementById('apiKeyInput').value = apiKey;
+    }
+
+    function renderWatchlist() {
+      const container = document.getElementById('watchlist');
+      const currentList = currentView === 'see' ? watchlist : sawList;
+      
+      if (currentList.length === 0) {
+        container.innerHTML = `<div class="empty-state"><p style="font-size: 1.2rem; margin-bottom: 0.5rem;">Your ${currentView} list is empty</p><p style="font-size: 1rem;">${currentView === 'see' ? 'Search for films above to get started' : 'Mark films as watched to see them here'}</p></div>`;
+        return;
+      }
+
+      container.innerHTML = currentList.map(movie => `
+        <div class="movie-card" data-movie-id="${movie.id}">
+          <button class="remove-btn" data-action="remove" data-id="${movie.id}">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path d="M18 6 6 18"></path>
+              <path d="m6 6 12 12"></path>
+            </svg>
+          </button>
+          <button class="check-btn" data-action="check" data-id="${movie.id}">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path d="M20 6 9 17l-5-5"></path>
+            </svg>
+          </button>
+          ${movie.poster ? `<img src="${movie.poster}" alt="${movie.title}">` : ''}
+          <div class="movie-info">
+            <h3 class="movie-title">${movie.title}</h3>
+            <div class="movie-director">${movie.director}</div>
+          </div>
+        </div>
+      `).join('');
+      
+      // Attach event listeners
+      const cards = container.querySelectorAll('.movie-card');
+      cards.forEach(card => {
+        card.addEventListener('click', function(e) {
+          // Check if clicking a button
+          const button = e.target.closest('button');
+          if (button) {
+            e.stopPropagation();
+            const action = button.dataset.action;
+            const id = parseInt(button.dataset.id);
+            
+            if (action === 'remove') {
+              removeMovie(e, id);
+            } else if (action === 'check') {
+              markAsWatched(e, id);
+            }
+            return;
+          }
+          
+          // Toggle touched state for touch devices
+          if (window.matchMedia('(hover: none)').matches) {
+            const wasTouched = card.classList.contains('touched');
+            
+            // Remove touched from all cards
+            cards.forEach(c => c.classList.remove('touched'));
+            
+            // If this card wasn't touched, touch it
+            if (!wasTouched) {
+              card.classList.add('touched');
+            }
+          }
+        });
+      });
+    }
+
+    function showSeeList() {
+      currentView = 'see';
+      document.getElementById('titleSee').classList.remove('dim');
+      document.getElementById('titleSaw').classList.remove('active');
+      document.getElementById('titleSaw').classList.add('dim');
+      renderWatchlist();
+    }
+
+    function showSawList() {
+      currentView = 'saw';
+      document.getElementById('titleSee').classList.add('dim');
+      document.getElementById('titleSaw').classList.add('active');
+      document.getElementById('titleSaw').classList.remove('dim');
+      renderWatchlist();
+    }
+
+    function markAsWatched(event, id) {
+      const movie = watchlist.find(m => m.id === id);
+      if (movie) {
+        watchlist = watchlist.filter(m => m.id !== id);
+        sawList.push(movie);
+        localStorage.setItem('saw_list', JSON.stringify(sawList));
+        renderWatchlist();
+      }
+    }
+
+    function removeMovie(event, id) {
+      if (currentView === 'see') {
+        watchlist = watchlist.filter(m => m.id !== id);
+      } else {
+        sawList = sawList.filter(m => m.id !== id);
+        localStorage.setItem('saw_list', JSON.stringify(sawList));
+      }
+      renderWatchlist();
+    }
+
+    function toggleMenu() {
+      document.getElementById('menu').classList.toggle('show');
+    }
+
+    function hideMenu() {
+      document.getElementById('menu').classList.remove('show');
+    }
+
+    function openSettings() {
+      hideMenu();
+      document.getElementById('settingsModal').classList.add('show');
+      document.getElementById('modalBackdrop').classList.add('show');
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsModal').classList.remove('show');
+      document.getElementById('modalBackdrop').classList.remove('show');
+    }
+
+    function saveSettings() {
+      apiKey = document.getElementById('apiKeyInput').value;
+      localStorage.setItem('tmdb_api_key', apiKey);
+      closeSettings();
+      if (apiKey) {
+        refreshWatchlist();
+      }
+    }
+
+    async function testAPI() {
+      hideMenu();
+      if (!apiKey) {
+        alert('❌ No API key set!\n\nPlease add your TMDB API key in Settings first.');
+        return;
+      }
+
+      try {
+        const response = await fetch(`https://api.themoviedb.org/3/movie/550?api_key=${apiKey}`);
+        const data = await response.json();
+        
+        if (data.status_code === 7 || data.status_code === 401) {
+          alert('❌ API key is invalid!\n\nPlease check your TMDB API key in Settings.');
+        } else if (data.title) {
+          alert(`✅ API key works!\n\nTest movie: ${data.title}\nPoster: ${data.poster_path ? 'Found' : 'Not found'}`);
+        }
+      } catch (error) {
+        alert('❌ API test failed!\n\n' + error.message);
+      }
+    }
+
+    async function refreshWatchlist() {
+      hideMenu();
+      if (!apiKey) {
+        alert('Please set your TMDB API key in Settings first.');
+        return;
+      }
+
+      console.log('Refreshing watchlist...');
+      
+      const updatedWatchlist = await Promise.all(
+        watchlist.map(async (movie) => {
+          try {
+            const response = await fetch(
+              `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${apiKey}&append_to_response=credits`
+            );
+            const details = await response.json();
+
+            if (details.status_code) {
+              console.error('API error for movie:', movie.title, details);
+              return movie;
+            }
+
+            const director = details.credits?.crew?.find(p => p.job === 'Director')?.name || movie.director;
+            const screenwriter = details.credits?.crew?.find(p => 
+              p.job === 'Screenplay' || p.job === 'Writer'
+            )?.name || movie.screenwriter;
+            const cast = details.credits?.cast?.slice(0, 5).map(a => a.name) || movie.cast;
+
+            return {
+              ...movie,
+              poster: details.poster_path 
+                ? `https://image.tmdb.org/t/p/w500${details.poster_path}`
+                : movie.poster,
+              director,
+              screenwriter,
+              cast
+            };
+          } catch (error) {
+            console.error('Error refreshing:', movie.title, error);
+            return movie;
+          }
+        })
+      );
+
+      watchlist = updatedWatchlist;
+      renderWatchlist();
+    }
+
+    async function handleSearch(query) {
+      const resultsDiv = document.getElementById('searchResults');
+      
+      clearTimeout(searchTimeout);
+      
+      if (!query.trim()) {
+        resultsDiv.classList.remove('show');
+        return;
+      }
+
+      if (!apiKey) {
+        resultsDiv.innerHTML = '<div style="padding: 2rem; text-align: center; color: #999;">Please set your API key in Settings first</div>';
+        resultsDiv.classList.add('show');
+        return;
+      }
+
+      resultsDiv.innerHTML = '<div style="padding: 2rem; text-align: center; color: #999;">Searching...</div>';
+      resultsDiv.classList.add('show');
+
+      searchTimeout = setTimeout(async () => {
+        try {
+          const response = await fetch(
+            `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}`
+          );
+          const data = await response.json();
+
+          if (!data.results || data.results.length === 0) {
+            resultsDiv.innerHTML = '<div style="padding: 2rem; text-align: center; color: #999;">No results found</div>';
+            return;
+          }
+
+          const detailedResults = await Promise.all(
+            data.results.slice(0, 5).map(async (movie) => {
+              const detailsResponse = await fetch(
+                `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${apiKey}&append_to_response=credits`
+              );
+              const details = await detailsResponse.json();
+
+              const director = details.credits?.crew?.find(p => p.job === 'Director')?.name || 'Unknown';
+              const cast = details.credits?.cast?.slice(0, 5).map(a => a.name) || [];
+
+              return {
+                id: movie.id,
+                title: movie.title,
+                poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+                director,
+                cast
+              };
+            })
+          );
+
+          resultsDiv.innerHTML = detailedResults.map(movie => `
+            <div class="search-result" onclick='addMovie(${JSON.stringify(movie)})'>
+              ${movie.poster ? `<img src="${movie.poster}" alt="${movie.title}">` : ''}
+              <div class="search-result-info">
+                <div class="search-result-title">${movie.title}</div>
+                <div class="search-result-director">Dir: ${movie.director}</div>
+              </div>
+            </div>
+          `).join('');
+        } catch (error) {
+          resultsDiv.innerHTML = '<div style="padding: 2rem; text-align: center; color: #999;">Search failed. Check console for details.</div>';
+          console.error('Search error:', error);
+        }
+      }, 500);
+    }
+
+    function addMovie(movie) {
+      if (!watchlist.find(m => m.id === movie.id)) {
+        watchlist.push(movie);
+        renderWatchlist();
+      }
+      document.querySelector('.search-input').value = '';
+      document.getElementById('searchResults').classList.remove('show');
+    }
+
+    // Click outside to close menu
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('menu');
+      const searchIcon = document.querySelector('.search-icon');
+      if (!menu.contains(e.target) && !searchIcon.contains(e.target)) {
+        hideMenu();
+      }
+    });
+
+    // Initial render
+    renderWatchlist();
+  </script>
+</body>
+</html>
