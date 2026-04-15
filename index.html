@@ -302,7 +302,11 @@
 
     .movie-card .check-btn {
       right: 0.5rem;
-      background: rgba(34, 197, 94, 0.9);
+      background: rgba(0, 0, 0, 0.9);
+    }
+
+    .movie-card .check-btn svg {
+      color: rgb(34, 197, 94);
     }
 
     .remove-btn:hover {
@@ -310,7 +314,7 @@
     }
 
     .check-btn:hover {
-      background: rgba(34, 197, 94, 1);
+      background: rgba(0, 0, 0, 1);
     }
 
     /* Desktop: show on hover */
@@ -545,7 +549,7 @@
   </div>
 
   <script>
-    let watchlist = [
+    const defaultMovies = [
       {
         id: 1,
         title: "The Grand Budapest Hotel",
@@ -572,6 +576,7 @@
       }
     ];
 
+    let watchlist = JSON.parse(localStorage.getItem('see_list') || JSON.stringify(defaultMovies));
     let sawList = JSON.parse(localStorage.getItem('saw_list') || '[]');
     let currentView = 'see';
     let apiKey = localStorage.getItem('tmdb_api_key') || '';
@@ -672,6 +677,7 @@
       if (movie) {
         watchlist = watchlist.filter(m => m.id !== id);
         sawList.push(movie);
+        localStorage.setItem('see_list', JSON.stringify(watchlist));
         localStorage.setItem('saw_list', JSON.stringify(sawList));
         renderWatchlist();
       }
@@ -680,6 +686,7 @@
     function removeMovie(event, id) {
       if (currentView === 'see') {
         watchlist = watchlist.filter(m => m.id !== id);
+        localStorage.setItem('see_list', JSON.stringify(watchlist));
       } else {
         sawList = sawList.filter(m => m.id !== id);
         localStorage.setItem('saw_list', JSON.stringify(sawList));
@@ -854,6 +861,7 @@
     function addMovie(movie) {
       if (!watchlist.find(m => m.id === movie.id)) {
         watchlist.push(movie);
+        localStorage.setItem('see_list', JSON.stringify(watchlist));
         renderWatchlist();
       }
       document.querySelector('.search-input').value = '';
@@ -866,6 +874,17 @@
       const searchIcon = document.querySelector('.search-icon');
       if (!menu.contains(e.target) && !searchIcon.contains(e.target)) {
         hideMenu();
+      }
+    });
+
+    // Click outside movie cards to deselect (touch devices only)
+    document.addEventListener('click', (e) => {
+      if (window.matchMedia('(hover: none)').matches) {
+        // If clicking outside any movie card, remove all touched classes
+        if (!e.target.closest('.movie-card')) {
+          const cards = document.querySelectorAll('.movie-card');
+          cards.forEach(c => c.classList.remove('touched'));
+        }
       }
     });
 
