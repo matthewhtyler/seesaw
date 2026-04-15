@@ -283,7 +283,6 @@
     .movie-card .check-btn {
       position: absolute;
       top: 0.5rem;
-      background: rgba(0, 0, 0, 0.8);
       border: none;
       border-radius: 50%;
       width: 32px;
@@ -298,15 +297,20 @@
 
     .movie-card .remove-btn {
       left: 0.5rem;
+      background: rgba(220, 38, 38, 0.9);
     }
 
     .movie-card .check-btn {
       right: 0.5rem;
+      background: rgba(34, 197, 94, 0.9);
     }
 
-    .remove-btn:hover,
+    .remove-btn:hover {
+      background: rgba(220, 38, 38, 1);
+    }
+
     .check-btn:hover {
-      background: rgba(90, 154, 154, 0.9);
+      background: rgba(34, 197, 94, 1);
     }
 
     /* Desktop: show on hover */
@@ -332,6 +336,22 @@
       right: 0;
       padding: 1rem;
       background: linear-gradient(to top, rgba(26, 26, 26, 0.95), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    /* Desktop: show on hover */
+    @media (hover: hover) {
+      .movie-card:hover .movie-info {
+        opacity: 1;
+      }
+    }
+
+    /* Mobile: show only when touched */
+    @media (hover: none) {
+      .movie-card.touched .movie-info {
+        opacity: 1;
+      }
     }
 
     .movie-title {
